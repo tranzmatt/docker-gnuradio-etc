@@ -102,9 +102,7 @@ RUN pybombs -v install \
   soapysdr \
   soapyremote \
   soapybladerf \
-  gr-osmosdr 
-
-RUN pybombs -v install \
+  gr-osmosdr \
   bladeRF \
   gr-op25 \
   && sed 's/@BLADERF_GROUP@/plugdev/g' ./src/bladeRF/host/misc/udev/88-nuand-bladerf1.rules.in > ./src/bladeRF/host/misc/udev/88-nuand-bladerf1.rules \
