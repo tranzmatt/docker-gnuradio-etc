@@ -1,6 +1,6 @@
 ### Template for balena.io container builder.
 
-FROM resin/%%BALENA_MACHINE_NAME%%-ubuntu:bionic AS gnuradio
+FROM resin/raspberrypi3-ubuntu:bionic AS gnuradio
 
 ENV DEBIAN_FRONTEND noninteractive
 ENV PYBOMBS_PREFIX=/pybombs
@@ -39,7 +39,22 @@ RUN curl https://bootstrap.pypa.io/get-pip.py -o /tmp/get-pip.py && python /tmp/
   && rm -rf /root/.cache/
 
 RUN pybombs recipes add-defaults \
-  && sed -i -e "s/-DENABLE_GRC=ON/-DENABLE_GRC=OFF/g" -e "s/-DENABLE_GR_QTGUI=ON/-DENABLE_GR_QTGUI=OFF/g" -e "s/-DENABLE_DOXYGEN=$builddocs/-DENABLE_DOXYGEN=OFF/g" /root/.pybombs/recipes/gr-recipes/gnuradio.lwr
+  && sed -i -e "s/-DENABLE_GRC=ON/-DENABLE_GRC=OFF/g" -e "s/-DENABLE_GR_QTGUI=ON/-DENABLE_GR_QTGUI=OFF/g" -e "s/-DENABLE_DOXYGEN=$builddocs/-DENABLE_DOXYGEN=OFF/g" \
+     /root/.pybombs/recipes/gr-recipes/gnuradio.lwr 
+
+RUN dpkg --print-architecture | grep -l arm && \
+    printf 'vars:\n config_opt: "-DCMAKE_C_FLAGS='\''-mfpu=neon'\'' -DCMAKE_CXX_FLAGS='\''-mfpu=neon'\''" \
+    \nconfigure_static: cmake .. -DCMAKE_INSTALL_PREFIX=$prefix $config_opt \n' >> /root/.pybombs/recipes/gr-recipes/uhd.lwr \
+    || exit 0
+
+COPY neon.patch /tmp
+RUN dpkg --print-architecture | grep -l arm && \
+    cat neon.patch >> /root/.pybombs/recipes/gr-recipes/uhd.lwr || exit 0
+RUN dpkg --print-architecture | grep -l arm && \
+    cat neon.patch >> /root/.pybombs/recipes/gr-recipes/bladeRF.lwr || exit 0
+RUN dpkg --print-architecture | grep -l arm && \
+    cat neon.patch >> /root/.pybombs/recipes/gr-recipes/gr-op25.lwr || exit 0
+  
 RUN pybombs prefix init ${PYBOMBS_PREFIX} -a master \
   && pybombs config default_prefix master && pybombs config makewidth $(nproc) \
   && pybombs config --env DEBIAN_FRONTEND noninteractive \
@@ -82,11 +97,14 @@ RUN apt-get update && pybombs -v install --deps-only \
   bladeRF \
   gr-op25 \
   && rm -rf /var/lib/apt/lists/* && rm -rf /pybombs/src
+
 RUN pybombs -v install \
   soapysdr \
   soapyremote \
   soapybladerf \
-  gr-osmosdr \
+  gr-osmosdr 
+
+RUN pybombs -v install \
   bladeRF \
   gr-op25 \
   && sed 's/@BLADERF_GROUP@/plugdev/g' ./src/bladeRF/host/misc/udev/88-nuand-bladerf1.rules.in > ./src/bladeRF/host/misc/udev/88-nuand-bladerf1.rules \
