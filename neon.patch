@@ -1,2 +1,2 @@
 vars:
-    config_opt: " -DCMAKE_C_FLAGS='-mfpu=neon' -DCMAKE_CXX_FLAGS='-mfpu=neon'"
+    config_opt: ' -DCMAKE_C_FLAGS=" -mfpu=neon" -DCMAKE_CXX_FLAGS=" -mfpu=neon"'
