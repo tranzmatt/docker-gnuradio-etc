@@ -120,6 +120,17 @@ RUN pybombs -v install \
   && cp ./src/bladeRF/host/misc/udev/88-nuand-bootloader.rules /etc/udev/rules.d/ \
   && rm -rf ./src/
 
+
+RUN apt-get update && pybombs -v install --deps-only \
+  rtl_433
+RUN pybombs -v install \
+  rtl_433
+
+RUN apt-get update && pybombs -v install --deps-only \
+  hackrf
+RUN pybombs -v install \
+  hackrf
+
 RUN rm -rf /tmp/* && apt-get -y autoremove --purge \
   && apt-get -y clean && apt-get -y autoclean
 
