@@ -93,43 +93,55 @@ FROM gnuradio as dependencies
 
 WORKDIR /pybombs/
 
+RUN apt-get update
+
+ENV V=1
+ENV VERBOSE=1
+
 RUN apt-get update && pybombs -v install --deps-only \
-  soapysdr \
-  soapyremote \
-  soapybladerf \
-  gr-osmosdr \
-  bladeRF \
-  gr-op25 \
-  gr-lte \
-  && rm -rf /var/lib/apt/lists/* && rm -rf /pybombs/src
+  soapysdr 
 
 RUN pybombs -v install \
-  soapysdr \
-  soapyremote \
-  soapybladerf \
-  gr-osmosdr \
-  bladeRF \
-  gr-op25 \
-  gr-lte \
-  && sed 's/@BLADERF_GROUP@/plugdev/g' ./src/bladeRF/host/misc/udev/88-nuand-bladerf1.rules.in > ./src/bladeRF/host/misc/udev/88-nuand-bladerf1.rules \
-  && sed 's/@BLADERF_GROUP@/plugdev/g' ./src/bladeRF/host/misc/udev/88-nuand-bladerf2.rules.in > ./src/bladeRF/host/misc/udev/88-nuand-bladerf2.rules \
-  && sed 's/@BLADERF_GROUP@/plugdev/g' ./src/bladeRF/host/misc/udev/88-nuand-bootloader.rules.in > ./src/bladeRF/host/misc/udev/88-nuand-bootloader.rules \
-  && mkdir -p /etc/udev/rules.d/ \
-  && cp ./src/bladeRF/host/misc/udev/88-nuand-bladerf1.rules /etc/udev/rules.d/ \
-  && cp ./src/bladeRF/host/misc/udev/88-nuand-bladerf2.rules /etc/udev/rules.d/ \
-  && cp ./src/bladeRF/host/misc/udev/88-nuand-bootloader.rules /etc/udev/rules.d/ \
-  && rm -rf ./src/
-
+  soapysdr 
 
 RUN apt-get update && pybombs -v install --deps-only \
   rtl_433
-RUN pybombs -v install \
+RUN pybombs -vvv install \
   rtl_433
 
-RUN apt-get update && pybombs -v install --deps-only \
-  hackrf
-RUN pybombs -v install \
-  hackrf
+#RUN apt-get update && pybombs -v install --deps-only \
+#  soapysdr \
+#  soapyremote \
+#  soapybladerf \
+#  gr-osmosdr \
+#  bladeRF \
+#  gr-op25 \
+#  gr-lte \
+#  && rm -rf /var/lib/apt/lists/* && rm -rf /pybombs/src
+#
+#RUN pybombs -v install \
+#  soapysdr \
+#  soapyremote \
+#  soapybladerf \
+#  gr-osmosdr \
+#  bladeRF \
+#  gr-op25 \
+#  gr-lte \
+#  && sed 's/@BLADERF_GROUP@/plugdev/g' ./src/bladeRF/host/misc/udev/88-nuand-bladerf1.rules.in > ./src/bladeRF/host/misc/udev/88-nuand-bladerf1.rules \
+#  && sed 's/@BLADERF_GROUP@/plugdev/g' ./src/bladeRF/host/misc/udev/88-nuand-bladerf2.rules.in > ./src/bladeRF/host/misc/udev/88-nuand-bladerf2.rules \
+#  && sed 's/@BLADERF_GROUP@/plugdev/g' ./src/bladeRF/host/misc/udev/88-nuand-bootloader.rules.in > ./src/bladeRF/host/misc/udev/88-nuand-bootloader.rules \
+#  && mkdir -p /etc/udev/rules.d/ \
+#  && cp ./src/bladeRF/host/misc/udev/88-nuand-bladerf1.rules /etc/udev/rules.d/ \
+#  && cp ./src/bladeRF/host/misc/udev/88-nuand-bladerf2.rules /etc/udev/rules.d/ \
+#  && cp ./src/bladeRF/host/misc/udev/88-nuand-bootloader.rules /etc/udev/rules.d/ \
+#  && rm -rf ./src/
+
+
+
+#RUN apt-get update && pybombs -v install --deps-only \
+#  hackrf
+#RUN pybombs -v install \
+#  hackrf
 
 RUN rm -rf /tmp/* && apt-get -y autoremove --purge \
   && apt-get -y clean && apt-get -y autoclean
