@@ -66,6 +66,7 @@ RUN pybombs prefix init ${PYBOMBS_PREFIX} -a master \
   && pybombs config --package wxpython forceinstalled true \
   && pybombs config --package soapysdr gitrev 349296050fc2d0d40e86b7834e9273599bfa387f \
   && pybombs config --package gr-iqbal gitbranch gr3.7 \
+  && pybombs config --package uhd gitrev release_003_010_001_001 \
   && pybombs config --package gnuradio gitbranch maint-3.7
 
 RUN apt-get update && apt-get install -y python-mako python-numpy python-requests python-cheetah libcppunit-dev \
@@ -74,9 +75,10 @@ RUN apt-get update && apt-get install -y python-mako python-numpy python-request
     cmake doxygen libboost-all-dev libusb-1.0-0-dev
 
 RUN pybombs -vv install mako numpy 
-RUN apt-get update && pybombs -v install --deps-only gnuradio && rm -rf /var/lib/apt/lists/* && rm -rf /pybombs/src
 RUN apt-get update && pybombs -v install --deps-only uhd && rm -rf /var/lib/apt/lists/* && rm -rf /pybombs/src
-RUN pybombs -vv install uhd
+RUN apt-get update && pybombs -v install --deps-only gnuradio && rm -rf /var/lib/apt/lists/* && rm -rf /pybombs/src
+
+RUN pybombs -vv install uhd && rm -rf /pybombs/src/ /pybombs/share/doc /pybombs/lib/uhd/tests
 RUN pybombs -vv install gnuradio && rm -rf /pybombs/src/ /pybombs/share/doc /pybombs/lib/uhd/tests
 
 RUN rm -rf /tmp/* && apt-get -y autoremove --purge \
@@ -88,10 +90,6 @@ FROM gnuradio as dependencies
 
 WORKDIR /pybombs/
 
-#RUN apt-get update
-#
-#RUN apt-get update && pybombs -v install --deps-only soapysdr && pybombs -v install soapysdr
-#RUN apt-get update && pybombs -v install --deps-only rtl_433 && pybombs -vvv install rtl_433
 
 RUN apt-get update && pybombs -v install --deps-only \
   soapysdr \
@@ -101,8 +99,7 @@ RUN apt-get update && pybombs -v install --deps-only \
   bladeRF \
   gr-op25 \
   gr-lte \
-  rtl_433 \
-  && rm -rf /var/lib/apt/lists/* && rm -rf /pybombs/src
+  rtl_433 
 
 RUN pybombs -v install \
   soapysdr \
@@ -112,20 +109,18 @@ RUN pybombs -v install \
   bladeRF \
   gr-op25 \
   gr-lte \
-  rtl_433 \
-  && sed 's/@BLADERF_GROUP@/plugdev/g' ./src/bladeRF/host/misc/udev/88-nuand-bladerf1.rules.in > ./src/bladeRF/host/misc/udev/88-nuand-bladerf1.rules \
+  rtl_433 
+
+RUN sed 's/@BLADERF_GROUP@/plugdev/g' ./src/bladeRF/host/misc/udev/88-nuand-bladerf1.rules.in > ./src/bladeRF/host/misc/udev/88-nuand-bladerf1.rules \
   && sed 's/@BLADERF_GROUP@/plugdev/g' ./src/bladeRF/host/misc/udev/88-nuand-bladerf2.rules.in > ./src/bladeRF/host/misc/udev/88-nuand-bladerf2.rules \
   && sed 's/@BLADERF_GROUP@/plugdev/g' ./src/bladeRF/host/misc/udev/88-nuand-bootloader.rules.in > ./src/bladeRF/host/misc/udev/88-nuand-bootloader.rules \
   && mkdir -p /etc/udev/rules.d/ \
   && cp ./src/bladeRF/host/misc/udev/88-nuand-bladerf1.rules /etc/udev/rules.d/ \
   && cp ./src/bladeRF/host/misc/udev/88-nuand-bladerf2.rules /etc/udev/rules.d/ \
-  && cp ./src/bladeRF/host/misc/udev/88-nuand-bootloader.rules /etc/udev/rules.d/ \
-  && rm -rf ./src/
-
-RUN apt-get update && pybombs -v install --deps-only hackrf && pybombs -v install hackrf
+  && cp ./src/bladeRF/host/misc/udev/88-nuand-bootloader.rules /etc/udev/rules.d/ 
 
 RUN rm -rf /tmp/* && apt-get -y autoremove --purge \
-  && apt-get -y clean && apt-get -y autoclean
+  && apt-get -y clean && apt-get -y autoclean && rm -rf ./src
 
 ENV INITSYSTEM on
 
