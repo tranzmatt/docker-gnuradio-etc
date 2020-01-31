@@ -92,7 +92,6 @@ FROM gnuradio as dependencies
 
 WORKDIR /pybombs/
 
-
 RUN apt-get update && pybombs -v install --deps-only \
   soapysdr \
   soapyremote \
@@ -112,6 +111,13 @@ RUN pybombs -v install \
   gr-op25 \
   gr-lte \
   rtl_433 
+
+RUN (echo "vars:" ; echo "  config_opt: '-DCMAKE_CXX_FLAGS=\" -fpermissive\" -DCMAKE_C_FLAGS=\" -fpermissive\" '" ) \
+  >> /root/.pybombs/recipes/gr-recipes/openlte.lwr
+RUN cat /root/.pybombs/recipes/gr-recipes/openlte.lwr
+
+RUN apt-get update && pybombs -v install --deps-only openlte
+RUN pybombs -v install openlte
 
 RUN sed 's/@BLADERF_GROUP@/plugdev/g' ./src/bladeRF/host/misc/udev/88-nuand-bladerf1.rules.in > ./src/bladeRF/host/misc/udev/88-nuand-bladerf1.rules \
   && sed 's/@BLADERF_GROUP@/plugdev/g' ./src/bladeRF/host/misc/udev/88-nuand-bladerf2.rules.in > ./src/bladeRF/host/misc/udev/88-nuand-bladerf2.rules \
