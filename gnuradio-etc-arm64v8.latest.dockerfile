@@ -112,7 +112,7 @@ RUN pybombs -v install \
   gr-lte \
   rtl_433 
 
-RUN (echo "vars:" ; echo "  config_opt: '-DCMAKE_CXX_FLAGS=\" -fpermissive\" -DCMAKE_C_FLAGS=\" -fpermissive\" '" ) \
+RUN (echo "vars:" ; echo "  config_opt: '-DCMAKE_CXX_FLAGS=\" -fpermissive -Wno-narrowing\" -DCMAKE_C_FLAGS=\" -fpermissive -Wno-narrowing\" '" ) \
   >> /root/.pybombs/recipes/gr-recipes/openlte.lwr
 RUN cat /root/.pybombs/recipes/gr-recipes/openlte.lwr
 
