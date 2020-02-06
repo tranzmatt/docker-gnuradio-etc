@@ -2,7 +2,8 @@
 
 #FROM resin/raspberrypi3-ubuntu:bionic AS gnuradio
 #FROM balenalib/jetson-nano-ubuntu:latest-build AS gnuradio
-FROM arm64v8/ubuntu AS gnuradio
+#FROM arm64v8/ubuntu AS gnuradio
+FROm nvcr.io/nvidia/l4t-base:r32.3.1 AS gnuradio
 
 ENV DEBIAN_FRONTEND noninteractive
 ENV PYBOMBS_PREFIX=/pybombs
