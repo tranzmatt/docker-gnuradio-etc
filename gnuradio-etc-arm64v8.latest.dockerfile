@@ -78,16 +78,16 @@ RUN apt-get update && apt-get install -y python-mako python-numpy python-request
 
 RUN pybombs -vv install mako numpy 
 RUN apt-get update && pybombs -v install --deps-only uhd && rm -rf /var/lib/apt/lists/* 
-RUN apt-get update && pybombs -v install --deps-only gnuradio37 && rm -rf /var/lib/apt/lists/* 
+RUN apt-get update && pybombs -v install --deps-only gnuradio && rm -rf /var/lib/apt/lists/* 
 
 RUN pybombs -vv install uhd && rm -rf /pybombs/share/doc /pybombs/lib/uhd/tests
 
-RUN sed -i -e "s/-DENABLE_GR_QTGUI=ON/-DENABLE_GR_QTGUI=OFF/g" -e "s/-DENABLE_DOXYGEN=$builddocs/-DENABLE_DOXYGEN=OFF/g" \
-    /root/.pybombs/recipes/gr-recipes/gnuradio37.lwr
+RUN sed -i -e "s/-DENABLE_GR_QTGUI=ON/-DENABLE_GR_QTGUI=ON/g" -e "s/-DENABLE_DOXYGEN=$builddocs/-DENABLE_DOXYGEN=OFF/g" \
+    /root/.pybombs/recipes/gr-recipes/gnuradio.lwr
 
 RUN apt-cache search pygtk
 RUN apt-get update && apt-get -y install python-gtk2-dev
-RUN pybombs -vv install gnuradio37 && rm -rf /pybombs/share/doc /pybombs/lib/uhd/tests
+RUN pybombs -vv install gnuradio && rm -rf /pybombs/share/doc /pybombs/lib/uhd/tests
 
 RUN rm -rf /tmp/* && apt-get -y autoremove --purge \
   && apt-get -y clean && apt-get -y autoclean
