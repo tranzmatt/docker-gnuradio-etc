@@ -11,8 +11,13 @@ RUN apt-get update \
 RUN apt-get install -f -y python3-pip \
     && pip3 install -U pip \
     && pip3 install -U pip testresources setuptools \
-    && pip3 install -U numpy==1.16.1 future==0.17.1 mock==3.0.5 h5py==2.9.0 \
+    && pip3 install -U numpy==1.16.1 future==0.17.1 mock==3.0.5 \
        keras_preprocessing==1.0.5 keras_applications==1.0.8 gast==0.2.2 enum34 futures protobuf
+
+RUN find /usr/include -name hdf5.h
+RUN ls -l /usr/include/hdf5/serial/hdf5.h
+RUN CFLAGS="-I/usr/include/hdf5/serial" LDFLAGS="-L/usr/lib/aarch64-linux-gnu/hdf5/serial" \
+    pip install --no-binary=h5py h5py==2.9.0 
 
 ARG JP_VERSION=43
 

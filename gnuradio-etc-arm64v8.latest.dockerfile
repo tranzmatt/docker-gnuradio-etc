@@ -42,7 +42,8 @@ RUN curl https://bootstrap.pypa.io/get-pip.py -o /tmp/get-pip.py && python /tmp/
 
 RUN pybombs auto-config \
   && pybombs recipes add-defaults \
-  && sed -i -e "s/-DENABLE_GRC=ON/-DENABLE_GRC=OFF/g" -e "s/-DENABLE_GR_QTGUI=ON/-DENABLE_GR_QTGUI=OFF/g" -e "s/-DENABLE_DOXYGEN=$builddocs/-DENABLE_DOXYGEN=OFF/g" \
+  && sed -i -e "s/-DENABLE_GR_QTGUI=ON/-DENABLE_GR_QTGUI=OFF/g" \
+     -e "s/-DENABLE_DOXYGEN=$builddocs/-DENABLE_DOXYGEN=OFF -DENABLE_SPHINX=OFF/g" \
      /root/.pybombs/recipes/gr-recipes/gnuradio.lwr 
 
 #RUN dpkg --print-architecture | grep -l arm && \
@@ -74,23 +75,18 @@ RUN pybombs prefix init ${PYBOMBS_PREFIX} -a master \
 RUN apt-get update && apt-get install -y python-mako python-numpy python-requests python-cheetah libcppunit-dev \
     python-zmq libzmq3-dev liblog4cpp5-dev python-pyqt5 pyqt5-dev-tools pyqt5-dev python-click-plugins \
     python-cairo-dev python-lxml libasound2-dev libgmp-dev libgsl-dev swig3.0 libfftw3-dev libfftw3-3 cmake-data \
-    cmake doxygen libboost-all-dev libusb-1.0-0-dev
+    cmake doxygen libboost-all-dev libusb-1.0-0-dev liborc-0.4-dev python-gtk2-dev
 
 RUN pybombs -vv install mako numpy 
-RUN apt-get update && pybombs -v install --deps-only uhd && rm -rf /var/lib/apt/lists/* 
-RUN apt-get update && pybombs -v install --deps-only gnuradio && rm -rf /var/lib/apt/lists/* 
+RUN apt-get update && pybombs -v install --deps-only uhd \
+    && pybombs -v install --deps-only gnuradio 
 
-RUN pybombs -vv install uhd && rm -rf /pybombs/share/doc /pybombs/lib/uhd/tests
+RUN pybombs -vv install uhd 
+RUN pybombs -vv install gnuradio 
 
-RUN sed -i -e "s/-DENABLE_GR_QTGUI=ON/-DENABLE_GR_QTGUI=ON/g" -e "s/-DENABLE_DOXYGEN=$builddocs/-DENABLE_DOXYGEN=OFF/g" \
-    /root/.pybombs/recipes/gr-recipes/gnuradio.lwr
-
-RUN apt-cache search pygtk
-RUN apt-get update && apt-get -y install python-gtk2-dev
-RUN pybombs -vv install gnuradio && rm -rf /pybombs/share/doc /pybombs/lib/uhd/tests
-
-RUN rm -rf /tmp/* && apt-get -y autoremove --purge \
-  && apt-get -y clean && apt-get -y autoclean
+RUN rm -rf /tmp/* /pybombs/share/doc /pybombs/lib/uhd/tests \
+    && apt-get -y autoremove --purge && apt-get -y clean \
+    && apt-get -y autoclean && rm -rf /var/lib/apt/lists/*
 
 ENTRYPOINT [ "/bin/bash" ]
 
