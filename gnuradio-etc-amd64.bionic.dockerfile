@@ -144,9 +144,7 @@ RUN sed 's/@BLADERF_GROUP@/plugdev/g' ./src/bladeRF/host/misc/udev/88-nuand-blad
 
 
 RUN apt-get update && apt-get install -y \
-    sudo \
     build-essential \
-    git \
     libmicrohttpd-dev \
     pkg-config \
     zlib1g-dev \
@@ -171,6 +169,8 @@ RUN apt-get update && apt-get install -y \
     python3-pip \
     python3-serial \
     librtlsdr0 \
+    python-gps \
+    gpsd \
     libusb-1.0-0-dev 
 
 

@@ -31,8 +31,6 @@ RUN apt-get -q update \
   python-dev \
   python3-dev \
   tzdata \
-  python-gps \
-  gpsd \
   && rm -rf /var/lib/apt/lists/*
 
 RUN dpkg-reconfigure -f noninteractive tzdata
@@ -120,8 +118,7 @@ RUN (echo "vars:" ; echo "  config_opt: '-DENABLE_GRGSM_LIVEMON=OFF '" ) \
   >> /root/.pybombs/recipes/gr-etcetera/gr-gsm.lwr
 RUN pybombs config --package libosmocore gitrev 0.11.0
 RUN apt-get update && pybombs -v install --deps-only gr-gsm
-#RUN pybombs -v install gr-gsm
-RUN pybombs -v fetch gr-gsm
+RUN pybombs -v install gr-gsm
 
 RUN (echo "vars:" ; echo "  config_opt: '-DCMAKE_CXX_FLAGS=\" -fpermissive -Wno-narrowing\" -DCMAKE_C_FLAGS=\" -fpermissive -Wno-narrowing\" '" ) \
   >> /root/.pybombs/recipes/gr-recipes/openlte.lwr
@@ -174,6 +171,8 @@ RUN apt-get update && apt-get install -y \
     python3-pip \
     python3-serial \
     librtlsdr0 \
+    python-gps \
+    gpsd \
     libusb-1.0-0-dev 
 
 
