@@ -126,6 +126,11 @@ RUN cat /root/.pybombs/recipes/gr-recipes/openlte.lwr
 RUN apt-get update && pybombs -v install --deps-only openlte
 RUN pybombs -v install openlte
 
+COPY ubertooth.lwr /root/.pybombs/recipes/gr-etcetera/
+RUN ls -l /root/.pybombs/recipes/gr-etcetera/
+RUN apt-get update && pybombs -v install --deps-only ubertooth
+RUN pybombs -v install ubertooth
+
 RUN sed 's/@BLADERF_GROUP@/plugdev/g' ./src/bladeRF/host/misc/udev/88-nuand-bladerf1.rules.in > ./src/bladeRF/host/misc/udev/88-nuand-bladerf1.rules \
   && sed 's/@BLADERF_GROUP@/plugdev/g' ./src/bladeRF/host/misc/udev/88-nuand-bladerf2.rules.in > ./src/bladeRF/host/misc/udev/88-nuand-bladerf2.rules \
   && sed 's/@BLADERF_GROUP@/plugdev/g' ./src/bladeRF/host/misc/udev/88-nuand-bootloader.rules.in > ./src/bladeRF/host/misc/udev/88-nuand-bootloader.rules \

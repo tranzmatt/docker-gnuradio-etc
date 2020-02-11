@@ -22,10 +22,12 @@ RUN CFLAGS="-I/usr/include/hdf5/serial" LDFLAGS="-L/usr/lib/aarch64-linux-gnu/hd
 ARG JP_VERSION=43
 
 RUN pip3 install --pre --extra-index-url https://developer.download.nvidia.com/compute/redist/jp/v$JP_VERSION tensorflow-gpu
-RUN pip3 install --pre --extra-index-url https://developer.download.nvidia.com/compute/redist/jp/v$JP_VERSION ‘tensorflow-gpu<2’
 RUN pip3 install --extra-index-url https://developer.download.nvidia.com/compute/redist/jp/v$JP_VERSION tensorflow-gpu
+#RUN pip3 install --extra-index-url https://developer.download.nvidia.com/compute/redist/jp/v$JP_VERSION tensorflow-gpu==$TF_VERSION+nv$NV_VERSION
 
-RUN nvpmodel -m 0
+#RUN apt-get update && apt-get -y install nvidia-l4t-tools
+
+#RUN nvpmodel -m 0
 
 
 
