@@ -40,7 +40,8 @@ RUN curl https://bootstrap.pypa.io/get-pip.py -o /tmp/get-pip.py && python /tmp/
 
 RUN pybombs auto-config \
   && pybombs recipes add-defaults \
-  && sed -i -e "s/-DENABLE_GRC=ON/-DENABLE_GRC=OFF/g" -e "s/-DENABLE_GR_QTGUI=ON/-DENABLE_GR_QTGUI=OFF/g" -e "s/-DENABLE_DOXYGEN=$builddocs/-DENABLE_DOXYGEN=OFF/g" \
+  && sed -i -e "s/-DENABLE_GR_QTGUI=ON/-DENABLE_GR_QTGUI=OFF/g" \
+     -e "s/-DENABLE_DOXYGEN=$builddocs/-DENABLE_DOXYGEN=OFF -DENABLE_SPHINX=OFF/g" \
      /root/.pybombs/recipes/gr-recipes/gnuradio.lwr 
 
 #RUN dpkg --print-architecture | grep -l arm && \
@@ -72,17 +73,18 @@ RUN pybombs prefix init ${PYBOMBS_PREFIX} -a master \
 RUN apt-get update && apt-get install -y python-mako python-numpy python-requests python-cheetah libcppunit-dev \
     python-zmq libzmq3-dev liblog4cpp5-dev python-pyqt5 pyqt5-dev-tools pyqt5-dev python-click-plugins \
     python-cairo-dev python-lxml libasound2-dev libgmp-dev libgsl-dev swig3.0 libfftw3-dev libfftw3-3 cmake-data \
-    cmake doxygen libboost-all-dev libusb-1.0-0-dev
+    cmake doxygen libboost-all-dev libusb-1.0-0-dev liborc-0.4-dev python-gtk2-dev
 
 RUN pybombs -vv install mako numpy 
-RUN apt-get update && pybombs -v install --deps-only uhd && rm -rf /var/lib/apt/lists/* && rm -rf /pybombs/src
-RUN apt-get update && pybombs -v install --deps-only gnuradio && rm -rf /var/lib/apt/lists/* && rm -rf /pybombs/src
+RUN apt-get update && pybombs -v install --deps-only uhd \
+    && pybombs -v install --deps-only gnuradio 
 
-RUN pybombs -vv install uhd && rm -rf /pybombs/src/ /pybombs/share/doc /pybombs/lib/uhd/tests
-RUN pybombs -vv install gnuradio && rm -rf /pybombs/src/ /pybombs/share/doc /pybombs/lib/uhd/tests
+RUN pybombs -vv install uhd 
+RUN pybombs -vv install gnuradio 
 
-RUN rm -rf /tmp/* && apt-get -y autoremove --purge \
-  && apt-get -y clean && apt-get -y autoclean
+RUN rm -rf /tmp/* /pybombs/share/doc /pybombs/lib/uhd/tests \
+    && apt-get -y autoremove --purge && apt-get -y clean \
+    && apt-get -y autoclean && rm -rf /var/lib/apt/lists/*
 
 ENTRYPOINT [ "/bin/bash" ]
 
@@ -110,12 +112,21 @@ RUN pybombs -v install \
   gr-lte \
   rtl_433 
 
-RUN (echo "vars:" ; echo "  config_opt: '-DCMAKE_CXX_FLAGS=\" -fpermissive\" -DCMAKE_C_FLAGS=\" -fpermissive\" '" ) \
+RUN (echo "vars:" ; echo "  config_opt: '-DENABLE_GRGSM_LIVEMON=OFF '" ) \
+  >> /root/.pybombs/recipes/gr-etcetera/gr-gsm.lwr
+RUN pybombs config --package libosmocore gitrev 0.11.0
+RUN apt-get update && pybombs -v install --deps-only gr-gsm
+RUN pybombs -v install gr-gsm
+
+RUN (echo "vars:" ; echo "  config_opt: '-DCMAKE_CXX_FLAGS=\" -fpermissive -Wno-narrowing\" -DCMAKE_C_FLAGS=\" -fpermissive -Wno-narrowing\" '" ) \
   >> /root/.pybombs/recipes/gr-recipes/openlte.lwr
-RUN cat /root/.pybombs/recipes/gr-recipes/openlte.lwr
 
 RUN apt-get update && pybombs -v install --deps-only openlte
 RUN pybombs -v install openlte
+
+COPY src/ /root/.pybombs/recipes/gr-etcetera/
+RUN apt-get update && pybombs -v install --deps-only ubertooth && pybombs -v install ubertooth
+#RUN apt-get update && pybombs -v install --deps-only ubertooth && pybombs -v install ubertooth
 
 RUN sed 's/@BLADERF_GROUP@/plugdev/g' ./src/bladeRF/host/misc/udev/88-nuand-bladerf1.rules.in > ./src/bladeRF/host/misc/udev/88-nuand-bladerf1.rules \
   && sed 's/@BLADERF_GROUP@/plugdev/g' ./src/bladeRF/host/misc/udev/88-nuand-bladerf2.rules.in > ./src/bladeRF/host/misc/udev/88-nuand-bladerf2.rules \
@@ -125,8 +136,50 @@ RUN sed 's/@BLADERF_GROUP@/plugdev/g' ./src/bladeRF/host/misc/udev/88-nuand-blad
   && cp ./src/bladeRF/host/misc/udev/88-nuand-bladerf2.rules /etc/udev/rules.d/ \
   && cp ./src/bladeRF/host/misc/udev/88-nuand-bootloader.rules /etc/udev/rules.d/ 
 
-RUN rm -rf /tmp/* && apt-get -y autoremove --purge \
-  && apt-get -y clean && apt-get -y autoclean && rm -rf ./src
+RUN apt-get update && apt-get install -y \
+    sudo \
+    build-essential \
+    git \
+    libmicrohttpd-dev \
+    pkg-config \
+    zlib1g-dev \
+    libnl-3-dev \
+    libnl-genl-3-dev \
+    libcap-dev \
+    libpcap-dev \
+    libnm-dev \
+    libdw-dev \
+    libsqlite3-dev \
+    libprotobuf-dev \
+    libprotobuf-c-dev \
+    protobuf-compiler \
+    protobuf-c-compiler \
+    libsensors4-dev \
+    python3 \
+    python3-setuptools \
+    python3-protobuf \
+    python3-usb \
+    python3-numpy \
+    python3-dev \
+    python3-pip \
+    python3-serial \
+    librtlsdr0 \
+    libusb-1.0-0-dev 
+
+
+WORKDIR /pybombs/src
+
+RUN git clone https://www.kismetwireless.net/git/kismet.git && cd kismet \
+    && ./configure --prefix ${PYBOMBS_PREFIX} --with-suidgroup=dialout \
+    && make -j $(nproc) && make suidinstall && make forceconfigs
+
+COPY kismet_site.conf /usr/local/etc/kismet_site.conf
+
+EXPOSE 2501
+EXPOSE 3501
+
+#RUN rm -rf /tmp/* && apt-get -y autoremove --purge \
+#  && apt-get -y clean && apt-get -y autoclean && rm -rf ./src
 
 ENV INITSYSTEM on
 
