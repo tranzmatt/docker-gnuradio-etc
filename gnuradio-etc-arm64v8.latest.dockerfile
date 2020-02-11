@@ -31,6 +31,8 @@ RUN apt-get -q update \
   python-dev \
   python3-dev \
   tzdata \
+  python-gps \
+  gpsd \
   && rm -rf /var/lib/apt/lists/*
 
 RUN dpkg-reconfigure -f noninteractive tzdata
@@ -147,9 +149,7 @@ RUN sed 's/@BLADERF_GROUP@/plugdev/g' ./src/bladeRF/host/misc/udev/88-nuand-blad
 
 
 RUN apt-get update && apt-get install -y \
-    sudo \
     build-essential \
-    git \
     libmicrohttpd-dev \
     pkg-config \
     zlib1g-dev \
