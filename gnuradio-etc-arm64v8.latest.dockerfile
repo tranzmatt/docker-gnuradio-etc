@@ -114,6 +114,8 @@ RUN pybombs -v install \
   gr-lte \
   rtl_433 
 
+RUN (echo "vars:" ; echo "  config_opt: '-DENABLE_GRGSM_LIVEMON=OFF '" ) \
+  >> /root/.pybombs/recipes/gr-etcetera/gr-gsm.lwr
 RUN pybombs config --package libosmocore gitrev 0.11.0
 RUN apt-get update && pybombs -v install --deps-only gr-gsm
 #RUN pybombs -v install gr-gsm
@@ -121,15 +123,13 @@ RUN pybombs -v fetch gr-gsm
 
 RUN (echo "vars:" ; echo "  config_opt: '-DCMAKE_CXX_FLAGS=\" -fpermissive -Wno-narrowing\" -DCMAKE_C_FLAGS=\" -fpermissive -Wno-narrowing\" '" ) \
   >> /root/.pybombs/recipes/gr-recipes/openlte.lwr
-RUN cat /root/.pybombs/recipes/gr-recipes/openlte.lwr
 
 RUN apt-get update && pybombs -v install --deps-only openlte
 RUN pybombs -v install openlte
 
-COPY ubertooth.lwr /root/.pybombs/recipes/gr-etcetera/
-RUN ls -l /root/.pybombs/recipes/gr-etcetera/
-RUN apt-get update && pybombs -v install --deps-only ubertooth
-RUN pybombs -v install ubertooth
+COPY src/ /root/.pybombs/recipes/gr-etcetera/
+RUN apt-get update && pybombs -v install --deps-only libbtbb && pybombs -v install libbtbb
+RUN apt-get update && pybombs -v install --deps-only ubertooth && pybombs -v install ubertooth
 
 RUN sed 's/@BLADERF_GROUP@/plugdev/g' ./src/bladeRF/host/misc/udev/88-nuand-bladerf1.rules.in > ./src/bladeRF/host/misc/udev/88-nuand-bladerf1.rules \
   && sed 's/@BLADERF_GROUP@/plugdev/g' ./src/bladeRF/host/misc/udev/88-nuand-bladerf2.rules.in > ./src/bladeRF/host/misc/udev/88-nuand-bladerf2.rules \
@@ -137,7 +137,61 @@ RUN sed 's/@BLADERF_GROUP@/plugdev/g' ./src/bladeRF/host/misc/udev/88-nuand-blad
   && mkdir -p /etc/udev/rules.d/ \
   && cp ./src/bladeRF/host/misc/udev/88-nuand-bladerf1.rules /etc/udev/rules.d/ \
   && cp ./src/bladeRF/host/misc/udev/88-nuand-bladerf2.rules /etc/udev/rules.d/ \
-  && cp ./src/bladeRF/host/misc/udev/88-nuand-bootloader.rules /etc/udev/rules.d/ 
+  && cp ./src/bladeRF/host/misc/udev/88-nuand-bootloader.rules /etc/udev/rules.d/ \
+  && cp ./src/ubertooth/host/build/misc/udev/40-ubertooth.rules /etc/udev/rules.d/ \
+  && cp ./src/osmo-sdr/software/libosmosdr/osmosdr.rules /etc/udev/rules.d/ \
+  && cp ./src/airspy/airspy-tools/52-airspy.rules /etc/udev/rules.d/ \
+  && cp ./src/rtl-sdr/rtl-sdr.rules /etc/udev/rules.d/ \
+  && cp ./src/hackrf/host/libhackrf/53-hackrf.rules /etc/udev/rules.d/ \
+  && cp ./src/uhd/host/utils/uhd-usrp.rules /etc/udev/rules.d/
+
+
+RUN apt-get update && apt-get install -y \
+    sudo \
+    build-essential \
+    git \
+    libmicrohttpd-dev \
+    pkg-config \
+    zlib1g-dev \
+    libnl-3-dev \
+    libnl-genl-3-dev \
+    libcap-dev \
+    libpcap-dev \
+    libnm-dev \
+    libdw-dev \
+    libsqlite3-dev \
+    libprotobuf-dev \
+    libprotobuf-c-dev \
+    protobuf-compiler \
+    protobuf-c-compiler \
+    libsensors4-dev \
+    python3 \
+    python3-setuptools \
+    python3-protobuf \
+    python3-usb \
+    python3-numpy \
+    python3-dev \
+    python3-pip \
+    python3-serial \
+    librtlsdr0 \
+    libusb-1.0-0-dev 
+
+
+WORKDIR /pybombs/src
+
+RUN . ${PYBOMBS_PREFIX}/setup_env.sh && ldconfig \
+    && git clone https://www.kismetwireless.net/git/kismet.git && cd kismet \
+    && CFLAGS="-I${PYBOMBS_PREFIX}/include" CXXFLAGS="-I${PYBOMBS_PREFIX}/include" \
+       ./configure --prefix ${PYBOMBS_PREFIX} --with-suidgroup=dialout \
+    && CFLAGS="-I${PYBOMBS_PREFIX}/include" CXXFLAGS="-I${PYBOMBS_PREFIX}/include" \
+       make -j $(nproc) && make suidinstall && make forceconfigs
+
+RUN find ${PYBOMBS_PREFIX} /etc/udev -name "*.rules"
+
+COPY kismet_site.conf /usr/local/etc/kismet_site.conf
+
+EXPOSE 2501
+EXPOSE 3501
 
 #RUN rm -rf /tmp/* && apt-get -y autoremove --purge \
 #  && apt-get -y clean && apt-get -y autoclean && rm -rf ./src

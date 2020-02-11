@@ -125,8 +125,8 @@ RUN apt-get update && pybombs -v install --deps-only openlte
 RUN pybombs -v install openlte
 
 COPY src/ /root/.pybombs/recipes/gr-etcetera/
+RUN apt-get update && pybombs -v install --deps-only libbtbb && pybombs -v install libbtbb
 RUN apt-get update && pybombs -v install --deps-only ubertooth && pybombs -v install ubertooth
-#RUN apt-get update && pybombs -v install --deps-only ubertooth && pybombs -v install ubertooth
 
 RUN sed 's/@BLADERF_GROUP@/plugdev/g' ./src/bladeRF/host/misc/udev/88-nuand-bladerf1.rules.in > ./src/bladeRF/host/misc/udev/88-nuand-bladerf1.rules \
   && sed 's/@BLADERF_GROUP@/plugdev/g' ./src/bladeRF/host/misc/udev/88-nuand-bladerf2.rules.in > ./src/bladeRF/host/misc/udev/88-nuand-bladerf2.rules \
@@ -134,7 +134,14 @@ RUN sed 's/@BLADERF_GROUP@/plugdev/g' ./src/bladeRF/host/misc/udev/88-nuand-blad
   && mkdir -p /etc/udev/rules.d/ \
   && cp ./src/bladeRF/host/misc/udev/88-nuand-bladerf1.rules /etc/udev/rules.d/ \
   && cp ./src/bladeRF/host/misc/udev/88-nuand-bladerf2.rules /etc/udev/rules.d/ \
-  && cp ./src/bladeRF/host/misc/udev/88-nuand-bootloader.rules /etc/udev/rules.d/ 
+  && cp ./src/bladeRF/host/misc/udev/88-nuand-bootloader.rules /etc/udev/rules.d/ \
+  && cp ./src/ubertooth/host/build/misc/udev/40-ubertooth.rules /etc/udev/rules.d/ \
+  && cp ./src/osmo-sdr/software/libosmosdr/osmosdr.rules /etc/udev/rules.d/ \
+  && cp ./src/airspy/airspy-tools/52-airspy.rules /etc/udev/rules.d/ \
+  && cp ./src/rtl-sdr/rtl-sdr.rules /etc/udev/rules.d/ \
+  && cp ./src/hackrf/host/libhackrf/53-hackrf.rules /etc/udev/rules.d/ \
+  && cp ./src/uhd/host/utils/uhd-usrp.rules /etc/udev/rules.d/
+
 
 RUN apt-get update && apt-get install -y \
     sudo \
@@ -169,9 +176,14 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /pybombs/src
 
-RUN git clone https://www.kismetwireless.net/git/kismet.git && cd kismet \
-    && ./configure --prefix ${PYBOMBS_PREFIX} --with-suidgroup=dialout \
-    && make -j $(nproc) && make suidinstall && make forceconfigs
+RUN . ${PYBOMBS_PREFIX}/setup_env.sh && ldconfig \
+    && git clone https://www.kismetwireless.net/git/kismet.git && cd kismet \
+    && CFLAGS="-I${PYBOMBS_PREFIX}/include" CXXFLAGS="-I${PYBOMBS_PREFIX}/include" \
+       ./configure --prefix ${PYBOMBS_PREFIX} --with-suidgroup=dialout \
+    && CFLAGS="-I${PYBOMBS_PREFIX}/include" CXXFLAGS="-I${PYBOMBS_PREFIX}/include" \
+       make -j $(nproc) && make suidinstall && make forceconfigs
+
+RUN find ${PYBOMBS_PREFIX} /etc/udev -name "*.rules"
 
 COPY kismet_site.conf /usr/local/etc/kismet_site.conf
 
